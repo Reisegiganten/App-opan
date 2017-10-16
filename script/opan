@@ -272,12 +272,12 @@ use Mojolicious::Lite;
 
 post "/upload" => sub {
   my $c = shift;
-  unless($TOKENS{$c->req->url->to_abs->password|| ""}) {
+  unless ($TOKENS{$c->req->url->to_abs->password || ""}) {
     $c->res->headers->www_authenticate("Basic realm=opan");
-    return $c->render(status => 401, text => "Token missing or not found\n")
+    return $c->render(status => 401, text => "Token missing or not found\n");
   }
-  my $upload = $c->req->upload('file')
-    or return $c->render(status => 400, text => "uploaded file missing\n");
+  my $upload = $c->req->upload('dist')
+    or return $c->render(status => 400, text => "dist file missing\n");
   my $pan_dir = path('pans/custom/dists/M/MY/MY')->make_path;
   $upload->move_to(my $pan_path = $pan_dir->child($upload->filename))
     or $c->render(
@@ -285,6 +285,7 @@ post "/upload" => sub {
     text   => "Failed to move ${upload} into custom pan: $!\n"
     );
   add_dist_to_index('pans/custom/index', $pan_path);
+  do_merge(app);
   $c->render(text => "$pan_path Added to opan\n");
   }
   if keys %TOKENS;
